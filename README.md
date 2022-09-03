@@ -6,5 +6,8 @@ This repository contains files for symbolic regression with filtered genetic pro
 The following prerequisites are needed:  
 [Python 3.9](https://www.python.org/downloads/release/python-390/)  
 [deap](https://github.com/DEAP/deap)  
-[scipy](https://github.com/scipy/scipy)
+[scipy](https://github.com/scipy/scipy)  
 [sympy](https://github.com/sympy/sympy)  
+
+## License  
+[https://creativecommons.org/licenses/by/4.0/legalcode](https://creativecommons.org/licenses/by/4.0/legalcode)
