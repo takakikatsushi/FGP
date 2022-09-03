@@ -10,7 +10,7 @@ The following prerequisites are needed:
 [sympy](https://github.com/sympy/sympy)  
 
 ## How to use  
-# Relationship learning
+### Relationship learning
 Usage is simple. Use it like this:
 ```
 est = Symbolic_Reg( population_size=200,
@@ -24,7 +24,7 @@ est.save_all()
 ```
 population_size and generations are the population size and number of generations to repeat. Larger values are likely to improve accuracy, but take longer. For x_domain and y_domain, enter the expected X and y ranges. results_dir specifies the directory where the results are stored.
 
-# Confirmation of results  
+### Confirmation of results  
 
 
 ## Authors  
