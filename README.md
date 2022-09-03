@@ -10,8 +10,17 @@ The following prerequisites are needed:
 [sympy](https://github.com/sympy/sympy)  
 
 ## How to use  
-```
 
+
+```
+est = Symbolic_Reg( population_size=200,
+                    generations=100,
+                    x_domain=X,
+                    y_domain=(0, 1),
+                    results_dir='./result'
+                    )
+est.fit(X_train, y_train)
+est.save_all()
 ```
 
 ## Authors  
