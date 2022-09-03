@@ -9,5 +9,8 @@ The following prerequisites are needed:
 [scipy](https://github.com/scipy/scipy)  
 [sympy](https://github.com/sympy/sympy)  
 
+## Authors  
+  
+
 ## License  
 [https://creativecommons.org/licenses/by/4.0/legalcode](https://creativecommons.org/licenses/by/4.0/legalcode)
