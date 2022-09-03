@@ -9,6 +9,9 @@ The following prerequisites are needed:
 [scipy](https://github.com/scipy/scipy)  
 [sympy](https://github.com/sympy/sympy)  
 
+## Installing  
+
+
 ## How to use  
 ### Relationship learning
 Usage is simple. Use it like this:
