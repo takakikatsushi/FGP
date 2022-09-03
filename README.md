@@ -25,6 +25,7 @@ est.save_all()
 population_size and generations are the population size and number of generations to repeat. Larger values are likely to improve accuracy, but take longer. For x_domain and y_domain, enter the expected X and y ranges. results_dir specifies the directory where the results are stored.
 
 ### Confirmation of results  
+Please check "002_best_model_expr.png". The expression is saved.
 ![result pic](https://github.com/takakikatsushi/FGP-NLS/blob/main/Codes/result2/002_best_model_expr.png?raw=true)
 
 ## Authors  
