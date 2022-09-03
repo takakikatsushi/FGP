@@ -9,6 +9,11 @@ The following prerequisites are needed:
 [scipy](https://github.com/scipy/scipy)  
 [sympy](https://github.com/sympy/sympy)  
 
+## How to use  
+```
+
+```
+
 ## Authors  
   
 
