@@ -22,17 +22,24 @@ The following libraries are necessary on top of [Python 3.9](https://www.python.
 ### Installation
 We recoomend that above packages are installed before running the installation commnad, although the installation command can automatically install theose packages.
 
+
 1. Close the github repository
 ```
 git clone https://github.com/takakikatsushi/FGP-NLS.git 
 ```
 
-2. Then, move to the main folder (FGP-NLS) and install the library
+2. Create virtual environment (e.g. conda)
+```
+conda create -n fgpnls_env python=3.9
+conda activate fgpnls_env
+```
+
+3. Then, move to the main folder (FGP-NLS) and install the library
 ```
 python setup.py install
 ```
 
-3. Check whether the library is installed or not.
+4. Check whether the library is installed or not.
 ```
 $> python
 Python 3.9.13 (main, Aug 25 2022, 18:29:29)
