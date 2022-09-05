@@ -1,1 +1,0 @@
-exp(7.24\cdot 10^-7 \cdot HAtmMWt\cdot NHetAtm\cdot (2.99 \cdot HAtmCount - 2.99 \cdot MMR))

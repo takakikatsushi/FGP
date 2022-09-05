@@ -1,1 +1,0 @@
-0.0101142964221835 \cdot (-Molecular_Weight + Number_of_H_Bond_Donors - Number_of_Rings + Polar_Surface_Area - exp(\sqrt(Number_of_Rotatable_Bonds)))\cdot \sqrt(exp(Minimum_Degree))
