@@ -2,27 +2,13 @@
 FGP-NLS is a symbolic regression using Filter-incorporated Genetic Programming with the constant optimization by Nonlinear Least Square. GP implementation is **DEAP** library and mathematical expressions are analyzed with the help of the **sympy** library.  
 Three filters help generate interpretable expressions: Variable filter, Functional filter and Domain filter.
 
-The main target of FGP-NLS is for QSAR/QSPR models. The three filters help find human-understandable mathematical expressions as a result of giving up the extremely precise expressions explaining a training data set. Details are found in `To be updated`. 
+The main target of FGP-NLS is for QSAR/QSPR models. The three filters help find human-understandable mathematical expressions as a result of giving up the extremely precise expressions explaining a training data set. Details are found in our publication. 
 
 
 ### Reference: `To be updated`
 
 ## Gettingb Started
 ### Prerequisites
-<<<<<<< HEAD
-The following prerequisites are needed:  
-[Python 3.9](https://www.python.org/downloads/release/python-390/)  
-[numpy]()  
-[pandas]()  
-[matplotlib]()  
-[deap](https://github.com/DEAP/deap)  
-[scipy](https://github.com/scipy/scipy)  
-[sympy](https://github.com/sympy/sympy)  
-[scikit-learn]()  
-
-## Installing  
-
-=======
 The following libraries are necessary on top of [Python 3.9](https://www.python.org/downloads/release/python-390/).
 
 * [DEAP](https://github.com/DEAP/deap)  
@@ -63,7 +49,6 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> Symbolic_reG
 <class 'fgpnls.deap_based_FGP_NLS.Symbolic_Reg'>
 ```
->>>>>>> ee1219495bb59ae49d4e8aff9a4b2d5b8ec81b14
 
 ## How to use  
 ### Symbolic Regression
