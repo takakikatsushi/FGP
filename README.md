@@ -1,6 +1,5 @@
-# FGP-NLS
-FGP-NLS is a symbolic regression using Filter-incorporated Genetic Programming with the constant optimization by Nonlinear Least Square. GP implementation is **DEAP** library and mathematical expressions are analyzed with the help of the **sympy** library.  
-Three filters help generate interpretable expressions: Variable filter, Functional filter and Domain filter.
+# FGP-NLS for QSAR/QSPR
+FGP-NLS is a symbolic regression using Filter-incorporated Genetic Programming with the constant optimization by Nonlinear Least Square. GP implementation is **DEAP** library and mathematical expressions are analyzed with the help of the **sympy** library. As expression filters, three filters can be used: Variable filter, Functional filter and Domain filter.
 
 The main target of FGP-NLS is for QSAR/QSPR models. The three filters help find human-understandable mathematical expressions as a result of giving up the extremely precise expressions explaining a training data set. Details are found in our publication. 
 
