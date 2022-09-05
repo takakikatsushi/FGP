@@ -92,7 +92,6 @@ The folder contains the following files.
  './result/002_best_model.tex',
  './result/002_best_model_expr.png']
 ```
-**(To Takaki-kun) Please check the explanation below**
 All the expressions searched during evolution can be found in `001_GP_log.tsv`. You can monitor tested expressions from this file.
 1. Files with the prefix of **001_GP_log** store RMSE values (fitness scores) during generation.  
 2. Files with the prefix of **001_GP_node** show node profiles during generation.  
@@ -100,7 +99,8 @@ All the expressions searched during evolution can be found in `001_GP_log.tsv`. 
    
 
 The best expression can be stored as an human readable expression: `002_best_model_expr.png`
-![result pic](https://github.com/takakikatsushi/FGP-NLS/blob/main/Codes/result2/002_best_model_expr.png?raw=true)
+
+![result pic](tmp/002_best_model_expr.png)
 
 **Note!!** the variable names in `Pandas.DataFrame` containing **hyphens** and **spaces** raise Exception. Furthermore, **underscores** are recognized as subscripts when translating to expressions. Our recommendation is to use CamelStyle for variable names.
 
