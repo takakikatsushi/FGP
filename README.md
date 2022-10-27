@@ -29,8 +29,8 @@ git clone https://github.com/takakikatsushi/FIGP.git
 
 2. Create virtual environment (e.g. conda)
 ```
-conda create -n fgpnls_env python=3.9
-conda activate fgpnls_env
+conda create -n figp_env python=3.9
+conda activate figp_env
 ```
 
 3. Then, move to the main folder (FIGP) and install the library
