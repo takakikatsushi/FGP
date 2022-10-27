@@ -1,7 +1,7 @@
-# FGP-NLS for QSAR/QSPR
-FGP-NLS is a symbolic regression using Filter-incorporated Genetic Programming with the constant optimization by Nonlinear Least Square. GP implementation is **DEAP** library and mathematical expressions are analyzed with the help of the **sympy** library. As expression filters, three filters can be used: Variable filter, Functional filter and Domain filter.
+# FIGP for QSAR/QSPR
+FIGP is a symbolic regression using Filter-incorporated Genetic Programming with the constant optimization by Nonlinear Least Square. GP implementation is **DEAP** library and mathematical expressions are analyzed with the help of the **sympy** library. As expression filters, three filters can be used: Variable filter, Functional filter and Domain filter.
 
-The main target of FGP-NLS is for QSAR/QSPR models. The three filters help find human-understandable mathematical expressions as a result of giving up the extremely precise expressions explaining a training data set. Details are found in our publication. 
+The main target of FIGP is for QSAR/QSPR models. The three filters help find human-understandable mathematical expressions as a result of giving up the extremely precise expressions explaining a training data set. Details are found in our publication. 
 
 
 ### Reference: `To be updated`
@@ -24,7 +24,7 @@ We recoomend that above packages are installed before running the installation c
 
 1. Close the github repository
 ```
-git clone https://github.com/takakikatsushi/FGP-NLS.git 
+git clone https://github.com/takakikatsushi/FIGP.git 
 ```
 
 2. Create virtual environment (e.g. conda)
@@ -33,7 +33,7 @@ conda create -n fgpnls_env python=3.9
 conda activate fgpnls_env
 ```
 
-3. Then, move to the main folder (FGP-NLS) and install the library
+3. Then, move to the main folder (FIGP) and install the library
 ```
 python setup.py install
 ```
@@ -44,16 +44,16 @@ $> python
 Python 3.9.13 (main, Aug 25 2022, 18:29:29)
 [Clang 12.0.0 ] :: Anaconda, Inc. on darwin
 Type "help", "copyright", "credits" or "license" for more information.
->>> from fgpnls import Symbolic_Reg
->>> Symbolic_reG
-<class 'fgpnls.deap_based_FGP_NLS.Symbolic_Reg'>
+>>> from figp import Symbolic_Reg
+>>> Symbolic_Reg
+<class 'figp.deap_based_FGP_NLS.Symbolic_Reg'>
 ```
 
 ## How to use  
 ### Symbolic Regression
 Running symbolic regression is straightforward. All you need X and y, which are `Pandas.DataFrame` and `Pandas.Series`, respectively. 
 ```
-from fgpnls import Symbolic_Reg
+from figp import Symbolic_Reg
 est = Symbolic_Reg( population_size=200,
                     generations=100,
                     x_domain=X,
@@ -106,7 +106,7 @@ The best expression can be stored as an human readable expression: `002_best_mod
 ## Authors 
 Takaki Katushi: https://github.com/takakikatsushi
 
-### Contributors to the FGP-NLS descriptors project:
+### Contributors to the FIGP descriptors project:
 Takaki Katsushi
 Tomoyuki Miyao
 

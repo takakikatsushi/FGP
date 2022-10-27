@@ -11,7 +11,7 @@ setup(
 	license="Creative Commons Attribution 4.0 International License",
 	description="Symbolic regression with FIGP",
 	author="Katsushi Takaki",
-	url="https://github.com/takakikatsushi/FGP",
+	url="https://github.com/takakikatsushi/FIGP",
 	packages=find_packages("src"), # detect python packages in the codes
 	package_dir={"":"src"},
 	#py_modules=[splittext(basename(path))[0] for path in glob('src/fgpnls/*.py')]
