@@ -124,7 +124,7 @@ def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
         else:
             offspring = varAnd(offspring, toolbox, cxpb, mutpb)
         
-        [_now_gen_log[_en].extend([f'After evolution : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, (_ind, _) in zip(offspring, range(n_expr2save))]
+        [_now_gen_log[_en].extend([f'After evolution : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, (_ind, _) in enumerate(zip(offspring, range(n_expr2save)))]
         
 
         # Evaluate the individuals with an invalid fitness
