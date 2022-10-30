@@ -134,7 +134,7 @@ def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
             ind.fitness.values = fit
         
         # [_now_gen_log[i].extend([f'After const opt : {str(offspring[i])}\t\t{offspring[i].fitness.values}\n']) for i in range(3)]
-        [_now_gen_log[_en].extend([f'After const opt : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, (_ind, _) in zip(offspring, range(n_expr2save))]
+        [_now_gen_log[_en].extend([f'After const opt : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, (_ind, _) in enumerate(zip(offspring, range(n_expr2save)))]
 
         
         _now_gen_log = list(itertools.chain.from_iterable(_now_gen_log))
