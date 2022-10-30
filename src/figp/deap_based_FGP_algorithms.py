@@ -64,7 +64,10 @@ def unique_varAnd(population, toolbox, cxpb, mutpb,
 def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
              halloffame=None, num_elite_select=1,
              var_max_trial = 20, check_func=None,
-             text_log=None, save_dir='./results', func_name=['add', 'sub', 'mul', 'div', 'ln', 'exp', 'sqrt', 'square', 'cube']):
+             text_log=None, save_dir='./results', 
+             func_name=['add', 'sub', 'mul', 'div', 'ln', 'exp', 'sqrt', 'square', 'cube'],
+             n_expr2save=3
+             ):
     
     xname = toolbox.compile.keywords['pset'].arguments
     pop_analysis_pool, pop_analysis_pool_select = list(), list()
@@ -75,7 +78,7 @@ def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
     
     # text_log.print(['=============== gen 0 ===============', f'ind 1 : {str(invalid_ind[0])}', f'ind 2 : {str(invalid_ind[1])}', f'ind 3 : {str(invalid_ind[0])}', '...\n'])
     text_log.print(['=============== gen 0 ==============='])
-    text_log.print([f'ind {_en} : {_ind}' for _en, _ind in enumerate(invalid_ind)])
+    text_log.print([f'ind {_en} : {_ind}' for _en, (_ind, _) in enumerate(zip(invalid_ind, range(n_expr2save)))])
     
     fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
     for ind, fit in zip(invalid_ind, fitnesses):
@@ -108,8 +111,10 @@ def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
         # _now_gen_log = [[f'=============== gen {gen} ===============', 'ind 1', f'After selection : {str(offspring[0])}\t\t{offspring[0].fitness.values}'], 
         #                 ['ind 2', f'After selection : {str(offspring[1])}\t\t{offspring[1].fitness.values}'], 
         #                 ['ind 3', f'After selection : {str(offspring[2])}\t\t{offspring[2].fitness.values}']]
-        _now_gen_log = [[f'=============== gen {gen} ===============', 'ind 1', f'After selection : {str(offspring[0])}\t\t{offspring[0].fitness.values}']]
-        _now_gen_log.extend([[f'ind {_en+2}', f'After selection : {str(_ind)}\t\t{_ind.fitness.values}'] for _en, _ind in enumerate(offspring)]) 
+        # _now_gen_log = [[f'=============== gen {gen} ===============', 'ind 1', f'After selection : {str(offspring[0])}\t\t{offspring[0].fitness.values}']]
+        # _now_gen_log.extend([[f'ind {_en+2}', f'After selection : {str(_ind)}\t\t{_ind.fitness.values}'] for _en, _ind in enumerate(offspring)]) 
+        _now_gen_log = [[f'=============== gen {gen} ===============']]
+        _now_gen_log.extend([[f'ind {_en}', f'After selection : {str(_ind)}\t\t{_ind.fitness.values}'] for _en, (_ind, _) in enumerate(zip(offspring, range(n_expr2save)))]) 
 
 
         # Vary the pool of individuals
@@ -119,9 +124,7 @@ def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
         else:
             offspring = varAnd(offspring, toolbox, cxpb, mutpb)
         
-        
-        # [_now_gen_log[i].extend([f'After evolution : {str(offspring[i])}\t\t{offspring[i].fitness.values}']) for i in range(3)]
-        [_now_gen_log[_en].extend([f'After evolution : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, _ind in enumerate(offspring)]
+        [_now_gen_log[_en].extend([f'After evolution : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, (_ind, _) in zip(offspring, range(n_expr2save))]
         
 
         # Evaluate the individuals with an invalid fitness
@@ -131,7 +134,7 @@ def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
             ind.fitness.values = fit
         
         # [_now_gen_log[i].extend([f'After const opt : {str(offspring[i])}\t\t{offspring[i].fitness.values}\n']) for i in range(3)]
-        [_now_gen_log[_en].extend([f'After const opt : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, _ind in enumerate(offspring)]
+        [_now_gen_log[_en].extend([f'After const opt : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, (_ind, _) in zip(offspring, range(n_expr2save))]
 
         
         _now_gen_log = list(itertools.chain.from_iterable(_now_gen_log))
