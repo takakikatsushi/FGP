@@ -1,5 +1,5 @@
 # FIGP for QSAR/QSPR
-FIGP is a symbolic regression using Filter-incorporated Genetic Programming with the constant optimization by Nonlinear Least Square. GP implementation is **DEAP** library and mathematical expressions are analyzed with the help of the **sympy** library. As expression filters, three filters can be used: Variable filter, Functional filter and Domain filter.
+FIGP is a symbolic regression using Filter-introduced Genetic Programming with the constant optimization by Nonlinear Least Square. GP implementation is **DEAP** library and mathematical expressions are analyzed with the help of the **sympy** library. As expression filters, three filters can be used: Variable filter, Functional filter and Domain filter.
 
 The main target of FIGP is for QSAR/QSPR models. The three filters help find human-understandable mathematical expressions as a result of giving up the extremely precise expressions explaining a training data set. Details are found in our publication. 
 
