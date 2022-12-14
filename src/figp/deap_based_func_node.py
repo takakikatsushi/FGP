@@ -179,7 +179,42 @@ class Node_space():
 
 
 
+class NumpyBasedFunction():
+    @staticmethod
+    def add(x1, x2):
+        return np.add(x1, x2)
 
+    @staticmethod
+    def sub(x1, x2):
+        return np.subtract(x1, x2)
+
+    @staticmethod
+    def mul(x1, x2):
+        return np.multiply(x1, x2)
+
+    @staticmethod
+    def div(x1, x2):
+        return np.divide(x1, x2)
+
+    @staticmethod
+    def ln(x):
+        return np.log(x)
+
+    @staticmethod
+    def sqrt(x):
+        return np.sqrt(x)
+
+    @staticmethod
+    def square(x):
+        return np.square(x)
+
+    @staticmethod
+    def cube(x):
+        return np.multiply(np.square(x), x)
+
+    @staticmethod
+    def exp(x):
+        return np.exp(x)
 
 
 

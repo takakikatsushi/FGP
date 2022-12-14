@@ -8,6 +8,7 @@ import re
 import time
 import warnings
 import copy
+import json
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,6 +16,7 @@ import pandas as pd
 # import pydotplus
 import sympy
 from deap import algorithms, base, creator, gp, tools
+import deap
 # from IPython.display import Image
 from scipy import optimize
 from scipy.optimize import basinhopping, least_squares, leastsq, minimize
@@ -25,7 +27,7 @@ from sklearn.model_selection import cross_val_predict
 from .deap_based_FGP_algorithms import FGP_NLS_algorithm
 from .deap_based_func_node import (Node_space, add, cube, div, exp, ln,
                                            mul, sqrt, square, sub, protected_division,
-                                           protected_sqrt, protected_ln)
+                                           protected_sqrt, protected_ln, NumpyBasedFunction)
 from .log_manager import table_log, txt_log
 from .my_plot import line_plot, scatter_plot
 
@@ -616,12 +618,18 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
     def save_gp_params(self):
         p_df = pd.Series(self.get_params())
         p_df.to_csv(f'{self.results_dir}/001_FilterGPSR_params.tsv', '\t')
+
+    def save_expr(self):
+        save_dict = dict(expr=str(self.expr), use_X=[node.value for node in self.expr if type(node)==deap.gp.Terminal])
+        with open(f'{self.results_dir}/000_best_expr.json', 'w') as fp:
+            json.dump(save_dict, fp)
     
     def save_all(self, y_name=''):
         self.save_gp_params()
         self.save_gen_metric_plot()
         self.save_expr4tex(y_name=y_name)
         self.save_expr4word()
+        self.save_expr()
         self.save_node_analysis()
         # self.save_tree_pic()
         
@@ -661,3 +669,24 @@ def output_score(   y_true_list,
                     score.at[0,d_key] = np.inf
     score.to_csv('{}score.tsv'.format(save_name), sep='\t')
     
+
+
+class ExprNameSpace():
+    def __init__(self, X, func=['add', 'sub', 'mul', 'div', 'ln', 'sqrt', 'square', 'cube', 'exp']):
+        self.X = X
+        self.func = func
+        self.nspace = {}
+        self._make()
+    
+    def _make(self):
+        self.nspace.update({_f:eval(f'NumpyBasedFunction.{_f}')for _f in self.func})
+        self.nspace.update({xname:np.array(self.X[xname]).reshape(-1, 1) for xname in self.X.columns})
+
+
+class load_expr():
+    def __init__(self, expr):
+        self.expr = expr
+
+    def predict(self, X):
+        ns = ExprNameSpace(X)
+        return eval(str(self.expr), ns.nspace)

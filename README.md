@@ -4,7 +4,7 @@ FIGP is a symbolic regression using Filter-introduced Genetic Programming with t
 The main target of FIGP is for QSAR/QSPR models. The three filters help find human-understandable mathematical expressions as a result of giving up the extremely precise expressions explaining a training data set. Details are found in our publication. 
 
 
-### Reference: `To be updated`
+### Reference: Takaki K.; Miyao T. Symbolic regression for the interpretation of quantitative structure-property relationships, Artificial Intelligence in the Life Sciences. [https://doi.org/10.1016/j.ailsci.2022.100046](https://doi.org/10.1016/j.ailsci.2022.100046)
 
 ## Gettingb Started
 ### Prerequisites
