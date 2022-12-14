@@ -683,7 +683,7 @@ class ExprNameSpace():
         self.nspace.update({xname:np.array(self.X[xname]).reshape(-1, 1) for xname in self.X.columns})
 
 
-class load_expr():
+class LoadExpr():
     def __init__(self, expr):
         self.expr = expr
 
