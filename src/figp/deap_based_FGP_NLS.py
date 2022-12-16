@@ -25,9 +25,8 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import cross_val_predict
 
 from .deap_based_FGP_algorithms import FGP_NLS_algorithm
-from .deap_based_func_node import (Node_space, add, cube, div, exp, ln,
-                                           mul, sqrt, square, sub, protected_division,
-                                           protected_sqrt, protected_ln, NumpyBasedFunction)
+from .deap_based_func_node import Node_space, NumpyBasedFunction
+# , add, cube, div, exp, ln, mul, sqrt, square, sub, protected_division, protected_sqrt, protected_ln, 
 from .log_manager import table_log, txt_log
 from .my_plot import line_plot, scatter_plot
 
@@ -42,74 +41,134 @@ def isfloat(_str):
         return False
     return True
 
-def FVD_filter(individual, function_filter = True, variable_filter = True, xydomain_filter = True, function_group=[ ['sqrt', 'protected_sqrt'], ['square', 'cube'], ['ln', 'exp', 'protected_ln']],
-               x_domain=None, y_domain=None, y_pred=None, equal=(True, True), constonly_filter = True):
+
+def get_depth_list(individual):
     depth = list()
     depth_pool = [0]
     for _node in individual:
         current_depth = depth_pool.pop()
         depth_pool.extend([current_depth+1]*_node.arity)
         depth.append(current_depth)
+    return depth
 
-        
-    # F, V, filter
-    func_pool, vals_pool = list(), list()
-    com_flat = list(itertools.chain.from_iterable(function_group))
-    old_d = -1
-    
-    for e, now_d in enumerate(depth):
-        _node = individual[e]
-        _name = individual[e].name
-        _arity = individual[e].arity
-        
-        if old_d >= now_d:
-            for _ in range(abs(old_d - now_d)+1):
-                func_pool.pop()
-                
-                
-        if function_filter:
-            if _name in com_flat:
-                com_bool = [_name in c for c in function_group]
-                consider_pairs_n = [c for b, c in zip(com_bool, function_group) if b][0]
-                if sum([(n in func_pool) for n in consider_pairs_n])!=0:
-                    return False, 'F_filter'
-
-        if variable_filter: 
-            if _arity == 0: # check x or const node
-                if isinstance(_node.value, float): # True -> const node
-                    pass
-                else:
-                    if _name in vals_pool:
-                        return False, 'V_filter'
-                    else:
-                        vals_pool.append(_name)
-
-        func_pool.append(_name)
-        old_d = now_d
+def FV_filter(individual, function_group, function_filter, variable_filter):
+    if function_filter or variable_filter:
+        depth = get_depth_list(individual)
+        func_pool, vals_pool = list(), list()
+        com_flat = list(itertools.chain.from_iterable(function_group))
+        old_d = -1
+        for e, now_d in enumerate(depth):
+            _node = individual[e]
+            _name = individual[e].name
+            _arity = individual[e].arity
             
+            if old_d >= now_d:
+                for _ in range(abs(old_d - now_d)+1):
+                    func_pool.pop()
+                    
+            if function_filter:
+                if _name in com_flat:
+                    com_bool = [_name in c for c in function_group]
+                    consider_pairs_n = [c for b, c in zip(com_bool, function_group) if b][0]
+                    if sum([(n in func_pool) for n in consider_pairs_n])!=0:
+                        return False, '=>>F-error'
+
+            if variable_filter: 
+                if _arity == 0: # check x or const node
+                    if isinstance(_node.value, float): # True -> const node
+                        pass
+                    else:
+                        if _name in vals_pool:
+                            return False, '=>>V-error'
+                        else:
+                            vals_pool.append(_name)
+
+            func_pool.append(_name)
+            old_d = now_d
+
+        state = ''
+        if variable_filter:
+            state += '=>>V-pass-' + '-'.join(vals_pool)
+        else:
+            state += '=>>V-none'
+        if function_filter:
+            state += '=>>F-pass'
+        else:
+            state += '=>>F-none'
+        return True, state
+
+    else:
+        return True, '=>>F-none=>>V-none'
+
+
+def D_filter(x_domain, y_domain, y_pred, equal, xydomain_filter):
     if xydomain_filter:
         if (x_domain is None or y_domain is None or y_pred is None):
             raise NameError(f'When xydomain_filter = True, x_domain needs a dataframe and y_domain needs a tuple of minimum and maximum values.\n x_domain = {type(x_domain)}, y_domain = {y_domain}')
 
         if sum(equal)==2:
             if ~np.all((y_domain[0] <= y_pred) & (y_pred <= y_domain[1])):
-                return False, 'D_filter'
+                return False, '=>>D-error'
         elif equal[0]:
             if ~np.all((y_domain[0] <= y_pred) & (y_pred < y_domain[1])):
-                return False, 'D_filter'
+                return False, '=>>D-error'
         elif equal[1]:
             if ~np.all((y_domain[0] < y_pred) & (y_pred <= y_domain[1])):
-                return False, 'D_filter'
+                return False, '=>>D-error'
         else:
             if ~np.all((y_domain[0] < y_pred) & (y_pred < y_domain[1])):
-                return False, 'D_filter'
+                return False, '=>>D-error'
+        return True, '=>>D-pass'
+        
+    else:
+        return True, '=>>D-none'
 
+def C_only_filter(individual, constonly_filter):
     if constonly_filter:
         terminals=[isfloat(node.name) for node in individual if node.arity==0]
         if sum(terminals) == len(terminals):
-            return False, 'const_only'
+            return False, '=>>C-error'
+        else:
+            return True, '=>>C-pass'
+    else:
+        return True, '=>>C-none'
+
+
+def FVD_filter(
+    individual, 
+    function_filter = True, 
+    variable_filter = True, 
+    xydomain_filter = True, 
+    constonly_filter = True,
+    function_group=[ 
+        ['sqrt', 'protected_sqrt'], 
+        ['square', 'cube'], 
+        ['ln', 'exp', 'protected_ln']],
+    x_domain=None, 
+    y_domain=None, 
+    y_pred=None, 
+    equal=(True, True)
+    ):
+
+    state = ''
+
+    _bool, _state = C_only_filter(individual, constonly_filter)
+    state += _state
+    if _bool == False:
+        return _bool, state
     
-    return True, 'all_pass'
+    _bool, _state = FV_filter(individual, function_group, function_filter, variable_filter)
+    state += _state
+    if _bool == False:
+        return _bool, state
+
+    _bool, _state = D_filter(x_domain, y_domain, y_pred, equal, xydomain_filter)
+    state += _state
+    if _bool == False:
+        return _bool, state
+    
+    return True, state
+
 
 class surveyed_individuals():
     def __init__(self, x_df):
@@ -217,18 +276,18 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
             p = {'ARG{}'.format(i):f'{x_name}'}
             self.pset.renameArguments(**p)
 
-        if 'add' in self.function_set: self.pset.addPrimitive(add, 2)
-        if 'sub' in self.function_set: self.pset.addPrimitive(sub, 2)
-        if 'mul' in self.function_set: self.pset.addPrimitive(mul, 2)
-        if 'div' in self.function_set: self.pset.addPrimitive(div, 2)
-        if 'ln'  in self.function_set: self.pset.addPrimitive(ln, 1)
-        if 'sqrt' in self.function_set: self.pset.addPrimitive(sqrt, 1)
-        if 'square' in self.function_set: self.pset.addPrimitive(square, 1)
-        if 'cube' in self.function_set: self.pset.addPrimitive(cube, 1)
-        if 'exp' in self.function_set: self.pset.addPrimitive(exp, 1)
-        if 'protected_division' in self.function_set: self.pset.addPrimitive(protected_division, 2)
-        if 'protected_sqrt' in self.function_set: self.pset.addPrimitive(protected_sqrt, 1)
-        if 'protected_ln' in self.function_set: self.pset.addPrimitive(protected_ln, 1)
+        if 'add' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.add, 2)
+        if 'sub' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.sub, 2)
+        if 'mul' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.mul, 2)
+        if 'div' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.div, 2)
+        if 'ln'  in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.ln, 1)
+        if 'sqrt' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.sqrt, 1)
+        if 'square' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.square, 1)
+        if 'cube' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.cube, 1)
+        if 'exp' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.exp, 1)
+        if 'protected_division' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.protected_division, 2)
+        if 'protected_sqrt' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.protected_sqrt, 1)
+        if 'protected_ln' in self.function_set: self.pset.addPrimitive(NumpyBasedFunction.protected_ln, 1)
 
     
         # add initial constant to be optimized
@@ -351,6 +410,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         return y_pred
         
     def _evalSymbReg(self, individual, x, y_true):
+        individual.state = ''
+
         # >>>>> func of const opt
         def _func(constants, x, y, individual, compiler, constant_nodes):
             _idx = 0
@@ -379,19 +440,24 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
             return residual
         # <<<<< func of const opt
         
-        filter_results = FVD_filter(individual, 
+        filter_results1 = FVD_filter(individual, 
                                     function_filter = self.function_filter, 
                                     variable_filter = self.variable_filter, 
                                     xydomain_filter = False, 
-                                    function_group=[ ['sqrt'], ['square', 'cube'], ['ln', 'log', 'exp']],
+                                    constonly_filter = self.constonly_filter,
+                                    function_group=[ 
+                                        ['sqrt'], 
+                                        ['square', 'cube'], 
+                                        ['ln', 'log', 'exp']],
                                     x_domain=None, 
                                     y_domain=None, 
                                     y_pred=None, 
                                     equal=self.domain_equal, 
-                                    constonly_filter = self.constonly_filter)
-        if filter_results[0]:
+                                    )
+        if filter_results1[0]:
             pass
         else:
+            individual.state = filter_results1[1]
             return np.inf,
 
         _is_const = [isfloat(n.name) for n in individual]
@@ -438,20 +504,24 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                         _idx += 1
                     self.root = 'C'
 
-        filter_results = FVD_filter(individual, 
+        filter_results2 = FVD_filter(individual, 
                                     function_filter = False, 
                                     variable_filter = False, 
                                     xydomain_filter = self.xydomain_filter,
+                                    constonly_filter = False,
                                     x_domain=self.x_domain, 
                                     y_domain=self.y_domain, 
                                     y_pred=self._pred(self.x_domain, individual), 
-                                    equal=self.domain_equal, constonly_filter = False)
-        if filter_results[0]:
+                                    equal=self.domain_equal, 
+                                    )
+        if filter_results2[0]:
             pass
         else:
+            individual.state = filter_results1[1] + filter_results2[1]
             return np.inf,
         
         y_pred = self._pred(self.fit_x_, individual)
+        individual.state = filter_results1[1] + filter_results2[1]
 
         try:
             if self.metric == 'mae':
@@ -463,7 +533,9 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
             else:
                 error = mean_absolute_error(y_true, y_pred)
         except:
+            individual.state += '=opt-error'
             error = np.inf
+        
         return error,
     
     def save_gen_metric_plot(self):
@@ -582,38 +654,6 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         line_plot(x_data=list(log_file.index), y_data=log_file, c_data=list(range(len(log_file.columns))), label_data=list(log_file.columns), xy_labels=['generation', 'Content rate'], figsize=(16,8), 
                     color_bar=False, save_name=f'{self.results_dir}/001_GP_node_analysis_func_select', data_direction='column', 
                     invert_xaxis=False, linewidth = 2.0, font_size=30, cmap='my_cmap', line_style=['-', '--', ':'])
-        
-    # def save_tree_pic(self):
-    #     x_name = self.fit_x_.columns
-    #     nodes = list(range(len(self.expr)))
-    #     edges = list()
-    #     labels = dict()
-    #     aritys = list()
-    #     stack = []
-    #     for idx, _node in enumerate(self.expr):
-    #         aritys.append(_node.arity)
-    #         if stack:
-    #             edges.append((stack[-1][0], idx))
-    #             stack[-1][1] -= 1
-    #         if hasattr(_node, 'value'):
-    #             if isfloat(_node.value):
-    #                 labels[idx] = Significant_figures(num=_node.value, digit=3, use_E=True)
-    #             else:
-    #                 labels[idx] = x_name[int(_node.name.split('ARG')[1])]
-    #         else:
-    #             labels[idx] = _node.name
-                
-    #         stack.append([idx, _node.arity])
-    #         while stack and stack[-1][1] == 0:
-    #             stack.pop()
-    #     tree_graph( nodes=nodes, 
-    #                 edges=edges, 
-    #                 labels=list(labels.values()),
-    #                 aritys=aritys, 
-    #                 dpi=400,
-    #                 save_name=f'{self.results_dir}/002_best_model_tree', 
-    #                 fill_color=['#00206b', '#aec7ff', '#ffc6d8'], # [node_color, descriptor_color, constant_color]
-    #                 font_color=['#ffffff', '#000000', '#000000'])
     
     def save_gp_params(self):
         p_df = pd.Series(self.get_params())
@@ -690,3 +730,116 @@ class LoadExpr():
     def predict(self, X):
         ns = ExprNameSpace(X)
         return eval(str(self.expr), ns.nspace)
+
+# old
+# def FVD_filter(
+#     individual, 
+#     function_filter = True, 
+#     variable_filter = True, 
+#     xydomain_filter = True, 
+#     function_group=[ ['sqrt', 'protected_sqrt'], ['square', 'cube'], ['ln', 'exp', 'protected_ln']],
+#     x_domain=None, 
+#     y_domain=None, 
+#     y_pred=None, 
+#     equal=(True, True), 
+#     constonly_filter = True):
+
+#     depth = list()
+#     depth_pool = [0]
+#     for _node in individual:
+#         current_depth = depth_pool.pop()
+#         depth_pool.extend([current_depth+1]*_node.arity)
+#         depth.append(current_depth)
+
+#     F, V, filter
+#     func_pool, vals_pool = list(), list()
+#     com_flat = list(itertools.chain.from_iterable(function_group))
+#     old_d = -1
+    
+#     for e, now_d in enumerate(depth):
+#         _node = individual[e]
+#         _name = individual[e].name
+#         _arity = individual[e].arity
+        
+#         if old_d >= now_d:
+#             for _ in range(abs(old_d - now_d)+1):
+#                 func_pool.pop()
+                
+                
+#         if function_filter:
+#             if _name in com_flat:
+#                 com_bool = [_name in c for c in function_group]
+#                 consider_pairs_n = [c for b, c in zip(com_bool, function_group) if b][0]
+#                 if sum([(n in func_pool) for n in consider_pairs_n])!=0:
+#                     return False, 'F_filter'
+
+#         if variable_filter: 
+#             if _arity == 0: # check x or const node
+#                 if isinstance(_node.value, float): # True -> const node
+#                     pass
+#                 else:
+#                     if _name in vals_pool:
+#                         return False, 'V_filter'
+#                     else:
+#                         vals_pool.append(_name)
+
+#         func_pool.append(_name)
+#         old_d = now_d
+            
+#     if xydomain_filter:
+#         if (x_domain is None or y_domain is None or y_pred is None):
+#             raise NameError(f'When xydomain_filter = True, x_domain needs a dataframe and y_domain needs a tuple of minimum and maximum values.\n x_domain = {type(x_domain)}, y_domain = {y_domain}')
+
+#         if sum(equal)==2:
+#             if ~np.all((y_domain[0] <= y_pred) & (y_pred <= y_domain[1])):
+#                 return False, 'D_filter'
+#         elif equal[0]:
+#             if ~np.all((y_domain[0] <= y_pred) & (y_pred < y_domain[1])):
+#                 return False, 'D_filter'
+#         elif equal[1]:
+#             if ~np.all((y_domain[0] < y_pred) & (y_pred <= y_domain[1])):
+#                 return False, 'D_filter'
+#         else:
+#             if ~np.all((y_domain[0] < y_pred) & (y_pred < y_domain[1])):
+#                 return False, 'D_filter'
+
+#     if constonly_filter:
+#         terminals=[isfloat(node.name) for node in individual if node.arity==0]
+#         if sum(terminals) == len(terminals):
+#             return False, 'const_only'
+    
+#     return True, 'all_pass'
+
+# old 
+# Symbolic_Reg() method
+    # def save_tree_pic(self):
+    #     x_name = self.fit_x_.columns
+    #     nodes = list(range(len(self.expr)))
+    #     edges = list()
+    #     labels = dict()
+    #     aritys = list()
+    #     stack = []
+    #     for idx, _node in enumerate(self.expr):
+    #         aritys.append(_node.arity)
+    #         if stack:
+    #             edges.append((stack[-1][0], idx))
+    #             stack[-1][1] -= 1
+    #         if hasattr(_node, 'value'):
+    #             if isfloat(_node.value):
+    #                 labels[idx] = Significant_figures(num=_node.value, digit=3, use_E=True)
+    #             else:
+    #                 labels[idx] = x_name[int(_node.name.split('ARG')[1])]
+    #         else:
+    #             labels[idx] = _node.name
+                
+    #         stack.append([idx, _node.arity])
+    #         while stack and stack[-1][1] == 0:
+    #             stack.pop()
+    #     tree_graph( nodes=nodes, 
+    #                 edges=edges, 
+    #                 labels=list(labels.values()),
+    #                 aritys=aritys, 
+    #                 dpi=400,
+    #                 save_name=f'{self.results_dir}/002_best_model_tree', 
+    #                 fill_color=['#00206b', '#aec7ff', '#ffc6d8'], # [node_color, descriptor_color, constant_color]
+    #                 font_color=['#ffffff', '#000000', '#000000'])

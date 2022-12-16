@@ -76,7 +76,6 @@ def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
     # Evaluate the individuals with an invalid fitness
     invalid_ind = [ind for ind in population if not ind.fitness.valid]
     
-    # text_log.print(['=============== gen 0 ===============', f'ind 1 : {str(invalid_ind[0])}', f'ind 2 : {str(invalid_ind[1])}', f'ind 3 : {str(invalid_ind[0])}', '...\n'])
     text_log.print(['=============== gen 0 ==============='])
     text_log.print([f'ind {_en} : {_ind}' for _en, (_ind, _) in enumerate(zip(invalid_ind, range(n_expr2save)))])
     
@@ -106,16 +105,9 @@ def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
         # Select the next generation individuals
         offspring = toolbox.select(population, len(population))
         
-        
         pop_analysis_pool_select.append(pop_analysis(offspring, func_name=func_name, x_name=xname))
-        # _now_gen_log = [[f'=============== gen {gen} ===============', 'ind 1', f'After selection : {str(offspring[0])}\t\t{offspring[0].fitness.values}'], 
-        #                 ['ind 2', f'After selection : {str(offspring[1])}\t\t{offspring[1].fitness.values}'], 
-        #                 ['ind 3', f'After selection : {str(offspring[2])}\t\t{offspring[2].fitness.values}']]
-        # _now_gen_log = [[f'=============== gen {gen} ===============', 'ind 1', f'After selection : {str(offspring[0])}\t\t{offspring[0].fitness.values}']]
-        # _now_gen_log.extend([[f'ind {_en+2}', f'After selection : {str(_ind)}\t\t{_ind.fitness.values}'] for _en, _ind in enumerate(offspring)]) 
         _now_gen_log = [[f'=============== gen {gen} ===============']]
         _now_gen_log.extend([[f'ind {_en}', f'After selection : {str(_ind)}\t\t{_ind.fitness.values}'] for _en, (_ind, _) in enumerate(zip(offspring, range(n_expr2save)))]) 
-
 
         # Vary the pool of individuals
         if var_max_trial != 1:
@@ -124,19 +116,16 @@ def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
         else:
             offspring = varAnd(offspring, toolbox, cxpb, mutpb)
         
-        [_now_gen_log[_en].extend([f'After evolution : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, (_ind, _) in enumerate(zip(offspring, range(n_expr2save)))]
-        
+        [_now_gen_log[_en+1].extend([f'After evolution : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, (_ind, _) in enumerate(zip(offspring, range(n_expr2save)))]
 
         # Evaluate the individuals with an invalid fitness
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         fitnesses = toolbox.map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitnesses):
             ind.fitness.values = fit
-        
-        # [_now_gen_log[i].extend([f'After const opt : {str(offspring[i])}\t\t{offspring[i].fitness.values}\n']) for i in range(3)]
-        [_now_gen_log[_en].extend([f'After const opt : {str(_ind)}\t\t{_ind.fitness.values}']) for _en, (_ind, _) in enumerate(zip(offspring, range(n_expr2save)))]
 
-        
+        [_now_gen_log[_en+1].extend([f'After const opt : {str(_ind)}\t\t{_ind.fitness.values}\nexpr state\n={_ind.state}']) for _en, (_ind, _) in enumerate(zip(offspring, range(n_expr2save)))]
+
         _now_gen_log = list(itertools.chain.from_iterable(_now_gen_log))
         text_log.print(_now_gen_log)
         
@@ -164,7 +153,10 @@ def FGP_NLS_algorithm(population, toolbox, cxpb, mutpb, ngen,# stats=None,
                                               len(invalid_ind)], 
                                 score_name_list = ['score-min', 'score-med', 'score-max', 'score-std', 'unique_rate', 'nevals'])
         pop_analysis_pool.append(pop_analysis(population, func_name=func_name, x_name=xname))
-        text_log.print([f'best ind       : {str(halloffame[0])}\nbest score     : {halloffame[0].fitness.values[0]}\nExecution time : {time.time() - _start_gen:.4f} s', f'=============== gen {gen} ===============\n'])
+        text_log.print([
+            f'best ind       : {str(halloffame[0])}\nbest score     : {halloffame[0].fitness.values[0]}\nExecution time : {time.time() - _start_gen:.4f} s', 
+            f'=============== gen {gen} ===============\n']
+            )
     
     pop_analysis_pool = pd.DataFrame(pop_analysis_pool)
     pop_analysis_pool.to_csv(f'{save_dir}/001_GP_node_analysis.tsv', sep='\t')

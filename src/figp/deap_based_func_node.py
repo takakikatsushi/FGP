@@ -20,47 +20,57 @@ from joblib import Parallel, delayed
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
-def add(x1, x2):
-    return np.add(x1, x2)
+class NumpyBasedFunction():
+    @staticmethod
+    def add(x1, x2):
+        return np.add(x1, x2)
 
-def sub(x1, x2):
-    return np.subtract(x1, x2)
+    @staticmethod
+    def sub(x1, x2):
+        return np.subtract(x1, x2)
 
-def mul(x1, x2):
-    return np.multiply(x1, x2)
+    @staticmethod
+    def mul(x1, x2):
+        return np.multiply(x1, x2)
 
-def div(x1, x2):
-    return np.divide(x1, x2)
+    @staticmethod
+    def div(x1, x2):
+        return np.divide(x1, x2)
 
-def ln(x):
-    return np.log(x)
+    @staticmethod
+    def ln(x):
+        return np.log(x)
 
-def sqrt(x):
-    return np.sqrt(x)
+    @staticmethod
+    def sqrt(x):
+        return np.sqrt(x)
 
-def square(x):
-    return np.square(x)
+    @staticmethod
+    def square(x):
+        return np.square(x)
 
-def cube(x):
-    return np.multiply(np.square(x), x)
+    @staticmethod
+    def cube(x):
+        return np.multiply(np.square(x), x)
 
-def exp(x):
-    return np.exp(x)
+    @staticmethod
+    def exp(x):
+        return np.exp(x)
 
+    # >>> protected functions (gplearn : https://github.com/trevorstephens/gplearn/blob/master/gplearn/functions.py)
+    @staticmethod
+    def protected_division(x1, x2):
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(np.abs(x2) > 0.001, np.divide(x1, x2), 1.)
 
-# >>> protected functions (gplearn : https://github.com/trevorstephens/gplearn/blob/master/gplearn/functions.py)
-def protected_division(x1, x2):
-    with np.errstate(divide='ignore', invalid='ignore'):
-        return np.where(np.abs(x2) > 0.001, np.divide(x1, x2), 1.)
+    @staticmethod
+    def protected_sqrt(x1):
+        return np.sqrt(np.abs(x1))
 
-
-def protected_sqrt(x1):
-    return np.sqrt(np.abs(x1))
-
-
-def protected_ln(x1):
-    with np.errstate(divide='ignore', invalid='ignore'):
-        return np.where(np.abs(x1) > 0.001, np.log(np.abs(x1)), 0.)
+    @staticmethod
+    def protected_ln(x1):
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(np.abs(x1) > 0.001, np.log(np.abs(x1)), 0.)
 
 
 class Node_space():
@@ -178,45 +188,32 @@ class Node_space():
 
 
 
+# def add(x1, x2):
+#     return np.add(x1, x2)
 
-class NumpyBasedFunction():
-    @staticmethod
-    def add(x1, x2):
-        return np.add(x1, x2)
+# def sub(x1, x2):
+#     return np.subtract(x1, x2)
 
-    @staticmethod
-    def sub(x1, x2):
-        return np.subtract(x1, x2)
+# def mul(x1, x2):
+#     return np.multiply(x1, x2)
 
-    @staticmethod
-    def mul(x1, x2):
-        return np.multiply(x1, x2)
+# def div(x1, x2):
+#     return np.divide(x1, x2)
 
-    @staticmethod
-    def div(x1, x2):
-        return np.divide(x1, x2)
+# def ln(x):
+#     return np.log(x)
 
-    @staticmethod
-    def ln(x):
-        return np.log(x)
+# def sqrt(x):
+#     return np.sqrt(x)
 
-    @staticmethod
-    def sqrt(x):
-        return np.sqrt(x)
+# def square(x):
+#     return np.square(x)
 
-    @staticmethod
-    def square(x):
-        return np.square(x)
+# def cube(x):
+#     return np.multiply(np.square(x), x)
 
-    @staticmethod
-    def cube(x):
-        return np.multiply(np.square(x), x)
-
-    @staticmethod
-    def exp(x):
-        return np.exp(x)
-
-
+# def exp(x):
+#     return np.exp(x)
 
 # def Pow(self, a=None, b=None):
 #     return np.power(a, b) if self._use_sympy else sympy.Pow(a,b)
@@ -224,6 +221,19 @@ class NumpyBasedFunction():
 # def Ipow(self, a=None, b=None):
 #     return np.power(a, np.divide(1, b)) if self._use_sympy else sympy.Pow(a,1/b)
 
+# # >>> protected functions (gplearn : https://github.com/trevorstephens/gplearn/blob/master/gplearn/functions.py)
+# def protected_division(x1, x2):
+#     with np.errstate(divide='ignore', invalid='ignore'):
+#         return np.where(np.abs(x2) > 0.001, np.divide(x1, x2), 1.)
+
+
+# def protected_sqrt(x1):
+#     return np.sqrt(np.abs(x1))
+
+
+# def protected_ln(x1):
+#     with np.errstate(divide='ignore', invalid='ignore'):
+#         return np.where(np.abs(x1) > 0.001, np.log(np.abs(x1)), 0.)
 
     # def pro_log_gplearn(self, a=None):
     #     with np.errstate(divide='ignore', invalid='ignore'):
