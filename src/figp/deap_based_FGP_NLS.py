@@ -251,6 +251,9 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         
         self.results_dir = results_dir
 
+        self._n_time = 1
+
+
         random.seed(self.random_state)
         self.fit_x_ = None
         self.fit_y_ = None
@@ -306,20 +309,29 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
+        def _progress_bar():
+            if int(self.population_size*0.01)*self._n_time == self._n_ind_gen_successes:
+                if self._n_time%10 == 0:
+                    print(f'{int(self._n_time)}%', end='')
+                else:
+                    print('|', end='')
+                self._n_time += 1
+
         def filter_initIterate(container, generator, max_trial=self.init_max_trial, unique=self.init_unique, text_log=self.text_log_):
             for i in range(max_trial):
                 ind = creator.Individual(generator())
                 score = self._evalSymbReg(ind, self.fit_x_, self.fit_y_)
                 self._n_ind_generations += 1
                 
-                # if score[0][0] != np.inf:
                 if score[0] != np.inf:
                     if unique:
                         if self._surveyed_individuals_.is_unobserved(creator.Individual(ind)):
                             self._n_ind_gen_successes += 1
+                            _progress_bar()
                             return container(ind)
                     else:
                         self._n_ind_gen_successes += 1
+                        _progress_bar()
                         return container(ind)
                 
             raise NameError(f'The maximum number of trials has been reached. \nNumber already generated : {self._n_ind_gen_successes}\nNumber of challenges : {self._n_ind_generations}')
@@ -352,7 +364,10 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         self.toolbox_.decorate("mutate", gp.staticLimit(key=operator.attrgetter("height"), max_value=self.max_depth))
         
         self._time0 = time.time()
+
+        print('Generation of initial generation')
         pop = self.toolbox_.population(n=self.population_size)
+        print('\nGeneration complete')
         
         self.text_log_.print([f' {self._n_ind_gen_successes} [ ind ] / {self._n_ind_generations} [ trials ] (time : {(time.time() - self._time0)/60:.3f} min)\n'])
         
