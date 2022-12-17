@@ -105,21 +105,12 @@ def D_filter(x_domain, y_domain, y_pred, equal, xydomain_filter):
     if xydomain_filter:
         if (x_domain is None or y_domain is None or y_pred is None):
             raise NameError(f'When xydomain_filter = True, x_domain needs a dataframe and y_domain needs a tuple of minimum and maximum values.\n x_domain = {type(x_domain)}, y_domain = {y_domain}')
-
-        if sum(equal)==2:
-            if ~np.all((y_domain[0] <= y_pred) & (y_pred <= y_domain[1])):
-                return False, '=>>D-error'
-        elif equal[0]:
-            if ~np.all((y_domain[0] <= y_pred) & (y_pred < y_domain[1])):
-                return False, '=>>D-error'
-        elif equal[1]:
-            if ~np.all((y_domain[0] < y_pred) & (y_pred <= y_domain[1])):
-                return False, '=>>D-error'
-        else:
-            if ~np.all((y_domain[0] < y_pred) & (y_pred < y_domain[1])):
-                return False, '=>>D-error'
-        return True, '=>>D-pass'
         
+        y_domain_min, y_domain_max = min(y_domain), max(y_domain)
+        equal = ['=' if _e else '' for _e in equal]
+        if eval(f'~np.all((y_domain_min <{equal[0]} y_pred)&(y_pred <{equal[0]} y_domain_max))'):
+            return False, '=>>D-error'
+        return True, '=>>D-pass'
     else:
         return True, '=>>D-none'
 
@@ -747,6 +738,30 @@ class LoadExpr():
         return eval(str(self.expr), ns.nspace)
 
 # old
+
+# def D_filter(x_domain, y_domain, y_pred, equal, xydomain_filter):
+#     if xydomain_filter:
+#         if (x_domain is None or y_domain is None or y_pred is None):
+#             raise NameError(f'When xydomain_filter = True, x_domain needs a dataframe and y_domain needs a tuple of minimum and maximum values.\n x_domain = {type(x_domain)}, y_domain = {y_domain}')
+
+#         if sum(equal)==2:
+#             if ~np.all((y_domain[0] <= y_pred) & (y_pred <= y_domain[1])):
+#                 return False, '=>>D-error'
+#         elif equal[0]:
+#             if ~np.all((y_domain[0] <= y_pred) & (y_pred < y_domain[1])):
+#                 return False, '=>>D-error'
+#         elif equal[1]:
+#             if ~np.all((y_domain[0] < y_pred) & (y_pred <= y_domain[1])):
+#                 return False, '=>>D-error'
+#         else:
+#             if ~np.all((y_domain[0] < y_pred) & (y_pred < y_domain[1])):
+#                 return False, '=>>D-error'
+#         return True, '=>>D-pass'
+        
+#     else:
+#         return True, '=>>D-none'
+
+
 # def FVD_filter(
 #     individual, 
 #     function_filter = True, 
