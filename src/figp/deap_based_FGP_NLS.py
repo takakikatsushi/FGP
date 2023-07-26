@@ -289,7 +289,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         _run = True
         while _run:
             try:
-                self.pset.addEphemeralConstant(f'c_node_{self._c_node_}', 
+                # self.pset.addEphemeralConstant(f'c_node_{self._c_node_}', 
+                self.pset.addEphemeralConstant(f'{self._c_node_}', 
                                                lambda: random.uniform(self.const_range[0],
                                                                       self.const_range[1]))
                 _run = False
@@ -466,8 +467,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
             individual.state = filter_results1[1]
             return np.inf,
 
-        _is_const = [isfloat(n.name) for n in individual]
-        # _is_const = [node.name == f'c_node_{self._c_node_}' for node in individual]
+        # _is_const = [isfloat(n.name) for n in individual]
+        _is_const = [node.name == f'c_node_{self._c_node_}' for node in individual]
         
         if sum(_is_const):
             constant_nodes = [e for e, i in enumerate(_is_const) if i]
@@ -482,7 +483,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                         for i in constant_nodes:
                             cnode = copy.deepcopy(individual[i])
                             cnode.value = _result.x[_idx]
-                            cnode.name  = str(_result.x[_idx])
+                            # cnode.name  = str(_result.x[_idx])
+                            cnode.name  = f'c_node_{self._c_node_}'
                             individual[i] = cnode
                             _idx += 1
                         self.root = 'A'
