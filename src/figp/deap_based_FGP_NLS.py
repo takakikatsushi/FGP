@@ -519,7 +519,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                     self.root = 'C'
                     opt_state = '=>>Copt-errorC'
         else:
-            opt_state = '=>>Copt-none'
+            _n = [node.name for node in individual]
+            opt_state = f'=>>Copt-none({_n})'
 
         filter_results2 = FVD_filter(individual, 
                                     function_filter = False, 
