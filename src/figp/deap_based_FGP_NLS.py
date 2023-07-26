@@ -120,7 +120,7 @@ def C_only_filter(individual, constonly_filter):
         if sum(terminals) == len(terminals):
             return False, '=>>C-error'
         else:
-            return True, '=>>C-pass'
+            return True, f'=>>C-pass({terminals})'
     else:
         return True, '=>>C-none'
 
@@ -245,6 +245,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         self._n_time = 1
         self._c_node_ = 0
 
+        self._x_columns = None
+
 
         random.seed(self.random_state)
         self.fit_x_ = None
@@ -260,7 +262,13 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
 
     def fit(self, x, y):
         _start_gen = time.time()
-        self.fit_x_ = x
+        if isinstance(x, pd.DataFrame):
+            self._x_columns = x.columns
+            self.fit_x_ = x
+        else:
+            self._x_columns = [f'x{i}' for i in range(x.shape[1])]
+            self.fit_x_ = pd.DataFrame(x, columns=self._x_columns)
+
         self.fit_y_ = y
         
         self._surveyed_individuals_ = surveyed_individuals(self.fit_x_)
@@ -493,7 +501,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                         if sum([_old==_new for _old, _new in zip(constants0, [individual[idx].value for idx in constant_nodes])]) == sum(_is_const):
                             opt_state = '=>>Copt-errorA'
                         else:
-                            opt_state = f'=>>Copt-pass({constants0}>>{_result.x})'
+                            # opt_state = f'=>>Copt-pass({constants0}>>{_result.x})'
+                            opt_state = f'=>>Copt-pass'
                         
                     else:
                         for i in constant_nodes:
