@@ -531,7 +531,7 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                                     y_pred=self._pred(self.x_domain, individual), 
                                     equal=self.domain_equal, 
                                     )
-        filter_results1[1] + opt_state + filter_results2[1]
+        individual.state = filter_results1[1] + opt_state + filter_results2[1]
         if filter_results2[0]:
             pass
         else:
@@ -549,7 +549,7 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
             else:
                 error = mean_absolute_error(y_true, y_pred)
         except:
-            individual.state += '=opt-error'
+            individual.state += '=>score-error'
             error = np.inf
         
         return error,
