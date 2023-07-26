@@ -243,6 +243,7 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         self.results_dir = results_dir
 
         self._n_time = 1
+        self._c_node_ = 0
 
 
         random.seed(self.random_state)
@@ -285,17 +286,14 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
 
     
         # add initial constant to be optimized
-        n_c_node = 1
-        add_n_c_node = 0
-        _count = 0
-        while add_n_c_node < n_c_node:
+        for i in range(100):
             try:
-                self.pset.addEphemeralConstant(f'c_node_{_count}', lambda: random.uniform(self.const_range[0],self.const_range[1]))
-                add_n_c_node += 1
-                _count += 1
+                self.pset.addEphemeralConstant(f'c_node_{self._c_node_}', 
+                                               lambda: random.uniform(self.const_range[0],
+                                                                      self.const_range[1]))
             except:
-                _count += 1
-                pass
+                self._c_node_ += 1
+
 
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
@@ -466,7 +464,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
             individual.state = filter_results1[1]
             return np.inf,
 
-        _is_const = [isfloat(n.name) for n in individual]
+        # _is_const = [isfloat(n.name) for n in individual]
+        _is_const = [node.name == f'c_node_{self._c_node_}' for node in individual]
 
         if sum(_is_const):
             constant_nodes = [e for e, i in enumerate(_is_const) if i]
@@ -486,6 +485,11 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                             _idx += 1
                         self.root = 'A'
                         self.temporary2 = [_result.x, _result.success, 'status', _result.status, _result.message]
+
+                        if sum(constants0 == _result.x) == len(constants0):
+                            opt_state = '=>>Copt-errorA'
+                        else:
+                            opt_state = '=>>Copt-pass'
                         
                     else:
                         for i in constant_nodes:
@@ -497,6 +501,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                             individual[i] = cnode
                             _idx += 1
                         self.root = 'B'
+                        opt_state = '=>>Copt-errorB'
+
                         
                 except:
                     _idx = 0
@@ -509,6 +515,9 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                         individual[i] = cnode
                         _idx += 1
                     self.root = 'C'
+                    opt_state = '=>>Copt-errorC'
+        else:
+            opt_state = '=>>Copt-none'
 
         filter_results2 = FVD_filter(individual, 
                                     function_filter = False, 
@@ -520,14 +529,13 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                                     y_pred=self._pred(self.x_domain, individual), 
                                     equal=self.domain_equal, 
                                     )
+        filter_results1[1] + opt_state + filter_results2[1]
         if filter_results2[0]:
             pass
         else:
-            individual.state = filter_results1[1] + filter_results2[1]
             return np.inf,
         
         y_pred = self._pred(self.fit_x_, individual)
-        individual.state = filter_results1[1] + filter_results2[1]
 
         try:
             if self.metric == 'mae':
