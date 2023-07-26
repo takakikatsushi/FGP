@@ -286,11 +286,13 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
 
     
         # add initial constant to be optimized
-        for i in range(100):
+        _run = True
+        while _run:
             try:
                 self.pset.addEphemeralConstant(f'c_node_{self._c_node_}', 
                                                lambda: random.uniform(self.const_range[0],
                                                                       self.const_range[1]))
+                _run = False
             except:
                 self._c_node_ += 1
 
