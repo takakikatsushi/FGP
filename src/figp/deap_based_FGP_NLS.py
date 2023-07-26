@@ -468,7 +468,7 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
 
         # _is_const = [isfloat(n.name) for n in individual]
         _is_const = [node.name == f'c_node_{self._c_node_}' for node in individual]
-
+        opt_state = '_'.join(_is_const)
         if sum(_is_const):
             constant_nodes = [e for e, i in enumerate(_is_const) if i]
             constants0 = [individual[idx].value for idx in constant_nodes]
@@ -482,13 +482,13 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                         for i in constant_nodes:
                             cnode = copy.deepcopy(individual[i])
                             cnode.value = _result.x[_idx]
-                            cnode.name  = str(_result.x[_idx])
+                            # cnode.name  = str(_result.x[_idx])
                             individual[i] = cnode
                             _idx += 1
                         self.root = 'A'
                         self.temporary2 = [_result.x, _result.success, 'status', _result.status, _result.message]
 
-                        if sum(constants0 == _result.x) == len(constants0):
+                        if sum([_old==_new for _old, _new in zip(constants0, [individual[idx].value for idx in constant_nodes])]) == sum(_is_const):
                             opt_state = '=>>Copt-errorA'
                         else:
                             opt_state = '=>>Copt-pass'
