@@ -120,7 +120,7 @@ def C_only_filter(individual, constonly_filter):
         if sum(terminals) == len(terminals):
             return False, '=>>C-error'
         else:
-            return True, '=>>C-pass'
+            return True, f'=>>C-pass({terminals})'
     else:
         return True, '=>>C-none'
 
@@ -243,6 +243,9 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         self.results_dir = results_dir
 
         self._n_time = 1
+        self._c_node_ = 0
+
+        self._x_columns = None
 
 
         random.seed(self.random_state)
@@ -259,14 +262,35 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
 
     def fit(self, x, y):
         _start_gen = time.time()
-        self.fit_x_ = x
+        if isinstance(x, pd.DataFrame):
+            self._x_columns = x.columns
+            self.fit_x_ = x
+
+        else:
+            self._x_columns = [f'x{i}' for i in range(x.shape[1])]
+            self.fit_x_ = pd.DataFrame(x, columns=self._x_columns)
+
+        if self.x_domain is not None:
+            if isinstance(self.x_domain, pd.DataFrame):
+                if (self.x_domain.columns == self._x_columns).all():
+                    pass
+                else:
+                    raise Exception('Column name mismatch (fit x <-> x_domain). fit X and X_domain must be of the same type.')
+            else:
+                if len(self._x_columns) == np.array(self.x_domain).shape[1]:
+                    self.x_domain = pd.DataFrame(self.x_domain, columns=self._x_columns)
+                else:
+                    raise Exception('Column count mismatch. fit X and X_domain must be of the same type.')
+
+
+
         self.fit_y_ = y
         
         self._surveyed_individuals_ = surveyed_individuals(self.fit_x_)
         
-        self.pset = gp.PrimitiveSet("MAIN", x.shape[1])
+        self.pset = gp.PrimitiveSet("MAIN", self.fit_x_ .shape[1])
         
-        for i, x_name in enumerate(x.columns):
+        for i, x_name in enumerate(self.fit_x_.columns):
             p = {'ARG{}'.format(i):f'{x_name}'}
             self.pset.renameArguments(**p)
 
@@ -285,17 +309,17 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
 
     
         # add initial constant to be optimized
-        n_c_node = 1
-        add_n_c_node = 0
-        _count = 0
-        while add_n_c_node < n_c_node:
+        _run = True
+        while _run:
             try:
-                self.pset.addEphemeralConstant(f'c_node_{_count}', lambda: random.uniform(self.const_range[0],self.const_range[1]))
-                add_n_c_node += 1
-                _count += 1
+                # self.pset.addEphemeralConstant(f'c_node_{self._c_node_}', 
+                self.pset.addEphemeralConstant(f'{self._c_node_}', 
+                                               lambda: random.uniform(self.const_range[0],
+                                                                      self.const_range[1]))
+                _run = False
             except:
-                _count += 1
-                pass
+                self._c_node_ += 1
+
 
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
@@ -339,7 +363,7 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
             
         self.toolbox_.register("population", tools.initRepeat, list, self.toolbox_.individual)
         self.toolbox_.register("compile", gp.compile, pset=self.pset)
-        self.toolbox_.register("evaluate", self._evalSymbReg, x=x, y_true=y)
+        self.toolbox_.register("evaluate", self._evalSymbReg, x=self.fit_x_, y_true=self.fit_y_)
         self.toolbox_.register("select", tools.selTournament, tournsize=self.tournament_size)
 
         # gp.cxOnePoint : 1 point crossover
@@ -390,13 +414,22 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, x):
+        if isinstance(x, pd.DataFrame):
+            if (self._x_columns == x.columns).all():
+                pass
+            else:
+                raise Exception('Column name mismatch. fit X, predict X, and X_domain must be of the same type.')
+        else:
+            if len(self._x_columns) == np.array(x).shape[1]:
+                x = pd.DataFrame(x, columns=self._x_columns)
+            else:
+                raise Exception('Column count mismatch. fit X, predict X, and X_domain must be of the same type.')
         y_pred = self._pred(x, self.expr)
         return y_pred
     
     def _pred(self, x, expr):
         func = self.toolbox_.compile(expr=expr)
         x_data = (x['{}'.format(i)] for i in list(x.columns))
-        # y_pred = func(*x_data)
         try:
             y_pred = func(*x_data)
         except:
@@ -467,7 +500,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
             return np.inf,
 
         _is_const = [isfloat(n.name) for n in individual]
-
+        # _is_const = [node.name == f'c_node_{self._c_node_}' for node in individual]
+        
         if sum(_is_const):
             constant_nodes = [e for e, i in enumerate(_is_const) if i]
             constants0 = [individual[idx].value for idx in constant_nodes]
@@ -482,10 +516,17 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                             cnode = copy.deepcopy(individual[i])
                             cnode.value = _result.x[_idx]
                             cnode.name  = str(_result.x[_idx])
+                            # cnode.name  = f'c_node_{self._c_node_}'
                             individual[i] = cnode
                             _idx += 1
                         self.root = 'A'
                         self.temporary2 = [_result.x, _result.success, 'status', _result.status, _result.message]
+
+                        if sum([_old==_new for _old, _new in zip(constants0, [individual[idx].value for idx in constant_nodes])]) == sum(_is_const):
+                            opt_state = '=>>Copt-errorA'
+                        else:
+                            # opt_state = f'=>>Copt-pass({constants0}>>{_result.x})'
+                            opt_state = f'=>>Copt-pass'
                         
                     else:
                         for i in constant_nodes:
@@ -497,6 +538,8 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                             individual[i] = cnode
                             _idx += 1
                         self.root = 'B'
+                        opt_state = '=>>Copt-errorB'
+
                         
                 except:
                     _idx = 0
@@ -509,6 +552,10 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                         individual[i] = cnode
                         _idx += 1
                     self.root = 'C'
+                    opt_state = '=>>Copt-errorC'
+        else:
+            _n = [node.name for node in individual]
+            opt_state = f'=>>Copt-none({_n})'
 
         filter_results2 = FVD_filter(individual, 
                                     function_filter = False, 
@@ -520,14 +567,13 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
                                     y_pred=self._pred(self.x_domain, individual), 
                                     equal=self.domain_equal, 
                                     )
+        individual.state = filter_results1[1] + opt_state + filter_results2[1]
         if filter_results2[0]:
             pass
         else:
-            individual.state = filter_results1[1] + filter_results2[1]
             return np.inf,
         
         y_pred = self._pred(self.fit_x_, individual)
-        individual.state = filter_results1[1] + filter_results2[1]
 
         try:
             if self.metric == 'mae':
@@ -539,7 +585,7 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
             else:
                 error = mean_absolute_error(y_true, y_pred)
         except:
-            individual.state += '=opt-error'
+            individual.state += '=>score-error'
             error = np.inf
         
         return error,
