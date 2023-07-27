@@ -265,17 +265,32 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         if isinstance(x, pd.DataFrame):
             self._x_columns = x.columns
             self.fit_x_ = x
+
         else:
             self._x_columns = [f'x{i}' for i in range(x.shape[1])]
             self.fit_x_ = pd.DataFrame(x, columns=self._x_columns)
+
+        if self.x_domain is not None:
+            if isinstance(self.x_domain, pd.DataFrame):
+                if (self.x_domain.columns == self._x_columns).all():
+                    pass
+                else:
+                    raise Exception('Column name mismatch (fit x <-> x_domain). fit X and X_domain must be of the same type.')
+            else:
+                if len(self._x_columns) == np.array(self.x_domain).shape[1]:
+                    self.x_domain = pd.DataFrame(self.x_domain, columns=self._x_columns)
+                else:
+                    raise Exception('Column count mismatch. fit X and X_domain must be of the same type.')
+
+
 
         self.fit_y_ = y
         
         self._surveyed_individuals_ = surveyed_individuals(self.fit_x_)
         
-        self.pset = gp.PrimitiveSet("MAIN", x.shape[1])
+        self.pset = gp.PrimitiveSet("MAIN", self.fit_x_ .shape[1])
         
-        for i, x_name in enumerate(x.columns):
+        for i, x_name in enumerate(self.fit_x_.columns):
             p = {'ARG{}'.format(i):f'{x_name}'}
             self.pset.renameArguments(**p)
 
@@ -348,7 +363,7 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
             
         self.toolbox_.register("population", tools.initRepeat, list, self.toolbox_.individual)
         self.toolbox_.register("compile", gp.compile, pset=self.pset)
-        self.toolbox_.register("evaluate", self._evalSymbReg, x=x, y_true=y)
+        self.toolbox_.register("evaluate", self._evalSymbReg, x=self.fit_x_, y_true=self.fit_y_)
         self.toolbox_.register("select", tools.selTournament, tournsize=self.tournament_size)
 
         # gp.cxOnePoint : 1 point crossover
@@ -399,13 +414,22 @@ class Symbolic_Reg(BaseEstimator, RegressorMixin):
         return self
 
     def predict(self, x):
+        if isinstance(x, pd.DataFrame):
+            if (self._x_columns == x.columns).all():
+                pass
+            else:
+                raise Exception('Column name mismatch. fit X, predict X, and X_domain must be of the same type.')
+        else:
+            if len(self._x_columns) == np.array(x).shape[1]:
+                x = pd.DataFrame(x, columns=self._x_columns)
+            else:
+                raise Exception('Column count mismatch. fit X, predict X, and X_domain must be of the same type.')
         y_pred = self._pred(x, self.expr)
         return y_pred
     
     def _pred(self, x, expr):
         func = self.toolbox_.compile(expr=expr)
         x_data = (x['{}'.format(i)] for i in list(x.columns))
-        # y_pred = func(*x_data)
         try:
             y_pred = func(*x_data)
         except:
